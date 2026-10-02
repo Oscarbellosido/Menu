@@ -47,8 +47,10 @@
     display: grid; gap: 12px;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
   }
+  .app { display: flex; }
   .app a {
-    display: flex; align-items: center; gap: 16px;
+    flex: 1;
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0 16px;
     padding: 16px; min-height: 92px;
     background: var(--card);
     border: 1px solid var(--line);
@@ -72,6 +74,11 @@
   .app .nom { font-size: 19px; font-weight: 620; }
   .app .desc { font-size: 14px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
   .app .fletxa { color: var(--muted); font-size: 22px; flex: none; transition: transform .15s, color .15s; }
+  .app .detall {
+    grid-column: 1 / -1;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+    font-size: 14px; line-height: 1.5; color: #b9c6da;
+  }
   .app a:hover .fletxa { color: var(--c); transform: translateX(3px); }
 
   footer { margin-top: 28px; text-align: center; font-size: 13px; color: var(--muted); }
@@ -100,11 +107,26 @@
 <script>
 // Per afegir una app: posa'n la icona (192 px) a icones/ i afegeix-la aquí.
 // L'ordre d'aquesta llista és l'ordre en què surten a la pantalla.
+// desc: una frase curta; detall: què fa el programa, en dues o tres frases.
 const APPS = [
-  { nom: 'Notícies',  desc: 'Notícies internacionals resumides en català',      url: 'https://oscarbellosido.github.io/Noticies/INDEX.html', icona: 'icones/noticies.png', color: '#3b82f6' },
-  { nom: 'El Temps',  desc: 'Predicció amb el consens de diversos models',       url: 'https://oscarbellosido.github.io/ElTemps/',            icona: 'icones/temps.png',    color: '#38bdf8' },
-  { nom: 'Jocs',      desc: 'Disset clàssics dels salons recreatius',            url: 'https://oscarbellosido.github.io/Jocs/',               icona: 'icones/jocs.png',     color: '#f59e0b' },
-  { nom: 'Economia',  desc: 'L\'economia mundial explicada fàcil',               url: 'https://oscarbellosido.github.io/Economia/',           icona: 'icones/economia.png', color: '#3987e5' },
+  { nom: 'Notícies', url: 'https://oscarbellosido.github.io/Noticies/INDEX.html', icona: 'icones/noticies.png', color: '#3b82f6',
+    desc: 'Notícies internacionals resumides en català',
+    detall: 'Recull cada matí i cada vespre les notícies de 27 mitjans del món, les tradueix i les resumeix en dues o tres línies. '
+          + 'Les ordena per importància i per categoria, agrupa les que parlen del mateix fet i indica la línia editorial de cada mitjà. '
+          + 'Comença amb un resum del dia i et pot avisar al mòbil.' },
+  { nom: 'El Temps', url: 'https://oscarbellosido.github.io/ElTemps/', icona: 'icones/temps.png', color: '#38bdf8',
+    desc: 'Predicció amb el consens de diversos models',
+    detall: 'Compara set models meteorològics (europeu, alemany, francès, americà…) i en treu una predicció comuna amb un indicador de fiabilitat. '
+          + "Té la previsió per hores i per a set dies, el radar de pluja, la qualitat de l'aire, els avisos oficials i el clima de cada població des del 1940." },
+  { nom: 'Jocs', url: 'https://oscarbellosido.github.io/Jocs/', icona: 'icones/jocs.png', color: '#f59e0b',
+    desc: 'Disset clàssics dels salons recreatius',
+    detall: 'Pong, Space Invaders, Comecocos, Tetris, Donkey Kong, Frogger i fins a disset màquines recreatives dels anys 70 i 80, fidels a les originals. '
+          + 'Pensats per jugar-hi al mòbil, amb els rècords de tothom guardats.' },
+  { nom: 'Economia', url: 'https://oscarbellosido.github.io/Economia/', icona: 'icones/economia.png', color: '#3987e5',
+    desc: "L'economia mundial explicada fàcil",
+    detall: "Explica en llenguatge planer el deute, la inflació, els sous, els tipus d'interès, el creixement i l'atur dels principals països. "
+          + 'Cada pàgina comença amb la conclusió en 30 segons i té rutes guiades com "Per què tot és més car?" o "Cobraré pensió?". '
+          + "Les dades de l'FMI, l'OCDE i els bancs centrals s'actualitzen cada mes." },
 ];
 
 const llista = document.getElementById('apps');
@@ -116,9 +138,11 @@ for (const a of APPS) {
       <img src="${a.icona}" alt="" width="60" height="60">
       <span class="txt"><span class="nom"></span><span class="desc" style="display:block"></span></span>
       <span class="fletxa" aria-hidden="true">›</span>
+      <span class="detall"></span>
     </a>`;
   li.querySelector('.nom').textContent = a.nom;
   li.querySelector('.desc').textContent = a.desc;
+  li.querySelector('.detall').textContent = a.detall;
   llista.append(li);
 }
 
