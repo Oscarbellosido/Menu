@@ -1,6 +1,6 @@
 # Menú d'apps
 
-Llançador de les meves aplicacions: Notícies, El Temps, Jocs, Economia i Vídeos.
+Llançador de les meves aplicacions: Notícies, El Temps, Jocs i Economia.
 Una sola pàgina estàtica (`index.html`), sense build ni dependències, instal·lable al mòbil (PWA).
 
 ## Afegir una app

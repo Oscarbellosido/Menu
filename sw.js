@@ -1,8 +1,8 @@
 // Service worker: el menú s'obre sense connexió i s'instal·la com a aplicació.
 // Puja CACHE cada vegada que canviïs index.html perquè els mòbils agafin la versió nova.
-const CACHE = 'menu-v1';
+const CACHE = 'menu-v2';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon.svg', 'icon-192.png', 'icon-512.png',
-  'icones/noticies.png', 'icones/temps.png', 'icones/jocs.png', 'icones/economia.png', 'icones/videos.png'];
+  'icones/noticies.png', 'icones/temps.png', 'icones/jocs.png', 'icones/economia.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -1,7 +1,7 @@
 {
   "name": "Les meves apps",
   "short_name": "Apps",
-  "description": "Llançador de les aplicacions: Notícies, El Temps, Jocs, Economia i Vídeos",
+  "description": "Llançador de les aplicacions: Notícies, El Temps, Jocs i Economia",
   "lang": "ca",
   "start_url": "./",
   "scope": "./",
