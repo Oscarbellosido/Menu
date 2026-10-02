@@ -11,15 +11,61 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+  // El tema triat s'aplica abans de pintar, perquè no surti un instant el fosc
+  try { const t = localStorage.getItem('menu_tema'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+</script>
 <style>
+  /* Tema: per defecte segueix el del mòbil; el botó del peu el pot forçar (data-theme a <html>) */
   :root {
+    color-scheme: dark;
     --bg: #0c1626;
     --bg2: #13213a;
     --card: rgba(255,255,255,.05);
     --card-hover: rgba(255,255,255,.09);
     --line: rgba(255,255,255,.09);
     --text: #e8eef8;
+    --text2: #c2cee0;
     --muted: #8fa1bd;
+    --lloc: #38bdf8;
+    --cap: #7fb0ff;
+    --ombra: none;
+    --ombra-icona: 0 4px 14px rgba(0,0,0,.35);
+    --to-c: 100%;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+    --bg: #eef2f8;
+    --bg2: #ffffff;
+    --card: #ffffff;
+    --card-hover: #f8fafd;
+    --line: rgba(15,30,60,.11);
+    --text: #0f1b2d;
+    --text2: #33435c;
+    --muted: #5b6b84;
+    --lloc: #0277b6;
+    --cap: #1d5fd6;
+    --ombra: 0 1px 3px rgba(15,30,60,.08);
+    --ombra-icona: 0 2px 8px rgba(15,30,60,.18);
+    --to-c: 72%;   /* el color de cada app, enfosquit perquè es llegeixi sobre blanc */
+    }
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #eef2f8;
+    --bg2: #ffffff;
+    --card: #ffffff;
+    --card-hover: #f8fafd;
+    --line: rgba(15,30,60,.11);
+    --text: #0f1b2d;
+    --text2: #33435c;
+    --muted: #5b6b84;
+    --lloc: #0277b6;
+    --cap: #1d5fd6;
+    --ombra: 0 1px 3px rgba(15,30,60,.08);
+    --ombra-icona: 0 2px 8px rgba(15,30,60,.18);
+    --to-c: 72%;   /* el color de cada app, enfosquit perquè es llegeixi sobre blanc */
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { min-height: 100%; }
@@ -50,7 +96,7 @@
   }
   .temps-desc { font-size: 14px; color: var(--text); margin-top: 4px; }
   .temps-minmax { font-size: 13px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
-  .temps-lloc { font-size: 13px; color: #38bdf8; margin-top: 2px; }
+  .temps-lloc { font-size: 13px; color: var(--lloc); margin-top: 2px; }
   .salutacio { font-size: 15px; color: var(--muted); }
   .hora {
     font-size: clamp(44px, 12vw, 64px); font-weight: 650; letter-spacing: -.03em;
@@ -70,11 +116,11 @@
   .titulars:hover { background: color-mix(in srgb, #3b82f6 14%, transparent); }
   .titulars-cap {
     display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-    font-size: 12px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: #7fb0ff;
+    font-size: 12px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--cap);
   }
   .titulars-mes { font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 13px; white-space: nowrap; }
   .titulars ol { list-style: none; margin-top: 8px; }
-  .titulars li { padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.4; color: #c9d4e5; }
+  .titulars li { padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.4; color: var(--text2); }
   .titulars li:first-child { border-top: 0; padding-top: 2px; font-size: 17px; font-weight: 600; line-height: 1.3; color: var(--text); }
   .titulars .cat { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); margin-bottom: 1px; }
 
@@ -87,7 +133,7 @@
   .app {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 20px;
+    border-radius: 20px; box-shadow: var(--ombra);
     position: relative; overflow: hidden;
     transition: background .15s, border-color .15s;
   }
@@ -106,7 +152,7 @@
   .app .obre:focus-visible { outline: 2px solid var(--c); outline-offset: -2px; border-radius: 20px; }
   .app img {
     width: 56px; height: 56px; border-radius: 14px; flex: none;
-    box-shadow: 0 4px 14px rgba(0,0,0,.35);
+    box-shadow: var(--ombra-icona);
   }
   .app .txt { min-width: 0; flex: 1; }
   .app .nom { font-size: 19px; font-weight: 620; }
@@ -119,7 +165,7 @@
     display: flex; align-items: center; gap: 6px; width: 100%;
     padding: 8px 16px 12px 88px;
     font: inherit; font-size: 13px; text-align: left;
-    color: var(--c); background: none; border: 0; cursor: pointer;
+    color: color-mix(in srgb, var(--c) var(--to-c), #000); background: none; border: 0; cursor: pointer;
   }
   .app .info .i {
     width: 17px; height: 17px; border-radius: 50%; flex: none;
@@ -131,7 +177,7 @@
   .app .info:hover span:not(.i):not(.plec) { text-decoration: underline; }
   .app .detall {
     margin: 0 16px 14px; padding-top: 12px; border-top: 1px solid var(--line);
-    font-size: 14px; line-height: 1.5; color: #b9c6da;
+    font-size: 14px; line-height: 1.5; color: var(--text2);
   }
 
   footer { margin-top: 28px; text-align: center; font-size: 13px; color: var(--muted); }
@@ -145,8 +191,9 @@
     color: var(--text); font-size: 14px; line-height: 1.5;
   }
   .passos b { font-weight: 620; }
+  .peu { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding: 0 4px; }
+  .peu .tema { font-size: 12px; padding: 6px 12px; color: var(--muted); }
   .signatura {
-    text-align: right; margin-top: 24px; padding-right: 4px;
     font-size: 13px; letter-spacing: .04em; color: var(--muted); opacity: .8;
   }
   [hidden] { display: none !important; }
@@ -178,7 +225,10 @@
   <footer>
     <button id="instal" hidden>Instal·la el menú al mòbil</button>
     <p class="passos" id="passos" hidden></p>
-    <p class="signatura">byCRE</p>
+    <div class="peu">
+      <button class="tema" id="tema" type="button"></button>
+      <p class="signatura">byCRE</p>
+    </div>
   </footer>
 </main>
 
@@ -234,6 +284,28 @@ for (const a of APPS) {
   });
   llista.append(li);
 }
+
+// Tema clar / fosc: automàtic (el del mòbil) → clar → fosc → automàtic…
+const TEMES = { auto: '◐ Tema automàtic', light: '☀️ Tema clar', dark: '🌙 Tema fosc' };
+const botoTema = document.getElementById('tema');
+function aplicaTema(t) {
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.dataset.theme = t;
+  botoTema.textContent = TEMES[t];
+  const clar = t === 'light' || (t === 'auto' && matchMedia('(prefers-color-scheme: light)').matches);
+  document.querySelector('meta[name="theme-color"]').content = clar ? '#eef2f8' : '#0c1626';
+}
+let tema = 'auto';
+try { tema = localStorage.getItem('menu_tema') || 'auto'; } catch {}
+if (!TEMES[tema]) tema = 'auto';
+aplicaTema(tema);
+botoTema.addEventListener('click', () => {
+  const ordre = Object.keys(TEMES);
+  tema = ordre[(ordre.indexOf(tema) + 1) % ordre.length];
+  try { localStorage.setItem('menu_tema', tema); } catch {}
+  aplicaTema(tema);
+});
+matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => aplicaTema(tema));
 
 // Rellotge i salutació
 function rellotge() {

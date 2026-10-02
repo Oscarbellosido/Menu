@@ -1,6 +1,6 @@
 // Service worker: el menú s'obre sense connexió i s'instal·la com a aplicació.
 // Puja CACHE cada vegada que canviïs index.html perquè els mòbils agafin la versió nova.
-const CACHE = 'menu-v9';
+const CACHE = 'menu-v10';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon.svg', 'icon-192.png', 'icon-512.png',
   'icones/noticies.png', 'icones/temps.png', 'icones/jocs.png', 'icones/economia.png'];
 
