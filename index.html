@@ -33,7 +33,24 @@
   }
   main { max-width: 760px; margin: 0 auto; }
 
-  header { margin: 8px 4px 28px; }
+  header { margin: 8px 4px 28px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .rellotge { min-width: 0; }
+
+  .temps {
+    flex: none; text-align: right; color: inherit; text-decoration: none;
+    padding: 6px 10px; margin: -6px -10px 0 0; border-radius: 14px;
+    transition: background .15s;
+  }
+  .temps:hover { background: var(--card); }
+  .temps-ara { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+  .temps-icona { font-size: clamp(30px, 8vw, 40px); line-height: 1; }
+  .temps-graus {
+    font-size: clamp(34px, 9.5vw, 48px); font-weight: 600; letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums; line-height: 1.05;
+  }
+  .temps-desc { font-size: 14px; color: var(--text); margin-top: 4px; }
+  .temps-minmax { font-size: 13px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .temps-lloc { font-size: 13px; color: #38bdf8; margin-top: 2px; }
   .salutacio { font-size: 15px; color: var(--muted); }
   .hora {
     font-size: clamp(44px, 12vw, 64px); font-weight: 650; letter-spacing: -.03em;
@@ -92,9 +109,17 @@
 <body>
 <main>
   <header>
-    <div class="salutacio" id="salutacio">Hola</div>
-    <div class="hora" id="hora">--:--</div>
-    <div class="data" id="data"></div>
+    <div class="rellotge">
+      <div class="salutacio" id="salutacio">Hola</div>
+      <div class="hora" id="hora">--:--</div>
+      <div class="data" id="data"></div>
+    </div>
+    <a class="temps" id="temps" href="https://oscarbellosido.github.io/ElTemps/" hidden>
+      <div class="temps-ara"><span class="temps-icona" id="t-icona"></span><span class="temps-graus" id="t-graus"></span></div>
+      <div class="temps-desc" id="t-desc"></div>
+      <div class="temps-minmax" id="t-minmax"></div>
+      <div class="temps-lloc" id="t-lloc"></div>
+    </a>
   </header>
 
   <ul class="apps" id="apps"></ul>
@@ -155,10 +180,77 @@ function rellotge() {
   document.getElementById('hora').textContent =
     ara.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
   document.getElementById('data').textContent =
-    ara.toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    ara.toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 rellotge();
 setInterval(rellotge, 1000);
+
+// El temps d'ara, del mateix lloc i amb les mateixes dades (Open-Meteo) que l'app El Temps.
+// Com que les dues apps són a oscarbellosido.github.io, es pot llegir l'últim lloc consultat a El Temps;
+// si no n'hi ha cap, Barcelona (el mateix que fa El Temps).
+const WMO = {
+  0:['☀️','Cel serè'], 1:['🌤️','Majoritàriament serè'], 2:['⛅','Parcialment ennuvolat'], 3:['☁️','Ennuvolat'],
+  45:['🌫️','Boira'], 48:['🌫️','Boira amb gebre'],
+  51:['🌦️','Plugim feble'], 53:['🌦️','Plugim'], 55:['🌧️','Plugim intens'],
+  56:['🌧️','Plugim gelant feble'], 57:['🌧️','Plugim gelant'],
+  61:['🌧️','Pluja feble'], 63:['🌧️','Pluja'], 65:['🌧️','Pluja forta'],
+  66:['🌨️','Pluja gelant feble'], 67:['🌨️','Pluja gelant forta'],
+  71:['🌨️','Nevada feble'], 73:['🌨️','Nevada'], 75:['❄️','Nevada forta'],
+  77:['🌨️','Calamarsa fina'],
+  80:['🌦️','Ruixats febles'], 81:['🌧️','Ruixats'], 82:['⛈️','Ruixats forts'],
+  85:['🌨️','Ruixats de neu febles'], 86:['❄️','Ruixats de neu forts'],
+  95:['⛈️','Tempesta'], 96:['⛈️','Tempesta amb calamarsa'], 99:['⛈️','Tempesta forta amb calamarsa'],
+};
+const wmo = c => WMO[c] || ['🌡️', '—'];
+const wmoIcona = (c, esDia) => esDia ? wmo(c)[0] : (c <= 1 ? '🌙' : c === 2 ? '☁️' : wmo(c)[0]);
+const CACHE_TEMPS = 'menu_temps';
+
+function llocTemps() {
+  try {
+    const r = JSON.parse(localStorage.getItem('eltemps_recent') || '[]')[0];
+    if (r && isFinite(r.lat) && isFinite(r.lon)) return { name: r.name, lat: r.lat, lon: r.lon };
+  } catch {}
+  return { name: 'Barcelona', lat: 41.3888, lon: 2.1590 };
+}
+
+function pintaTemps({ lloc, d }) {
+  const c = d.current, dia = d.daily;
+  document.getElementById('t-icona').textContent = wmoIcona(c.weather_code, c.is_day);
+  document.getElementById('t-graus').textContent = Math.round(c.temperature_2m) + '°';
+  document.getElementById('t-desc').textContent = wmo(c.weather_code)[1];
+  let mm = `↑${Math.round(dia.temperature_2m_max[0])}° ↓${Math.round(dia.temperature_2m_min[0])}°`;
+  const pluja = dia.precipitation_probability_max?.[0];
+  if (pluja >= 20) mm += ` · 💧${pluja}%`;
+  document.getElementById('t-minmax').textContent = mm;
+  document.getElementById('t-lloc').textContent = '📍 ' + lloc.name;
+  const a = document.getElementById('temps');
+  a.href = 'https://oscarbellosido.github.io/ElTemps/?' +
+    new URLSearchParams({ lat: lloc.lat, lon: lloc.lon, name: lloc.name });
+  a.title = `El temps a ${lloc.name} — obre El Temps`;
+  a.hidden = false;
+}
+
+async function carregaTemps() {
+  const lloc = llocTemps();
+  try {
+    const desat = JSON.parse(localStorage.getItem(CACHE_TEMPS) || 'null');
+    if (desat && desat.lloc.lat === lloc.lat && desat.lloc.lon === lloc.lon) pintaTemps(desat);
+  } catch {}
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lloc.lat}&longitude=${lloc.lon}`
+      + `&current=temperature_2m,weather_code,is_day`
+      + `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max`
+      + `&timezone=auto&forecast_days=1`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!r.ok) throw new Error('temps');
+    const dades = { lloc, d: await r.json() };
+    pintaTemps(dades);
+    try { localStorage.setItem(CACHE_TEMPS, JSON.stringify(dades)); } catch {}
+  } catch {} // sense connexió: es queda el que hi havia desat (o res)
+}
+carregaTemps();
+setInterval(carregaTemps, 15 * 60 * 1000);
+addEventListener('visibilitychange', () => { if (!document.hidden) carregaTemps(); });
 
 // PWA: funciona sense connexió i es pot instal·lar
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
