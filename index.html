@@ -185,9 +185,9 @@ function rellotge() {
 rellotge();
 setInterval(rellotge, 1000);
 
-// El temps d'ara, del mateix lloc i amb les mateixes dades (Open-Meteo) que l'app El Temps.
-// Com que les dues apps són a oscarbellosido.github.io, es pot llegir l'últim lloc consultat a El Temps;
-// si no n'hi ha cap, Barcelona (el mateix que fa El Temps).
+// El temps d'ara, amb les mateixes dades (Open-Meteo) que l'app El Temps.
+// Lloc: on és la persona (ubicació del mòbil). Si no dona permís, l'últim lloc consultat a El Temps
+// (les dues apps són a oscarbellosido.github.io i comparteixen localStorage); si no n'hi ha cap, Barcelona.
 const WMO = {
   0:['☀️','Cel serè'], 1:['🌤️','Majoritàriament serè'], 2:['⛅','Parcialment ennuvolat'], 3:['☁️','Ennuvolat'],
   45:['🌫️','Boira'], 48:['🌫️','Boira amb gebre'],
@@ -204,13 +204,51 @@ const WMO = {
 const wmo = c => WMO[c] || ['🌡️', '—'];
 const wmoIcona = (c, esDia) => esDia ? wmo(c)[0] : (c <= 1 ? '🌙' : c === 2 ? '☁️' : wmo(c)[0]);
 const CACHE_TEMPS = 'menu_temps';
+const LLOC_GPS = 'menu_lloc';   // últim lloc trobat amb la ubicació, amb el nom ja buscat
+const PROXY = u => `https://mecai.oscarbellosido.workers.dev/?action=rss&url=${encodeURIComponent(u)}`;
+const llegeix = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
+const desa = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const arrodoneix = n => Math.round(n * 1000) / 1000;   // ~100 m: no cal més precisió (ni enviar-ne més)
+const km = (a, b) => Math.hypot(a.lat - b.lat, (a.lon - b.lon) * Math.cos(a.lat * Math.PI / 180)) * 111;
 
-function llocTemps() {
-  try {
-    const r = JSON.parse(localStorage.getItem('eltemps_recent') || '[]')[0];
-    if (r && isFinite(r.lat) && isFinite(r.lon)) return { name: r.name, lat: r.lat, lon: r.lon };
-  } catch {}
+function llocDeReserva() {
+  const r = (llegeix('eltemps_recent') || [])[0];
+  if (r && isFinite(r.lat) && isFinite(r.lon)) return { name: r.name, lat: r.lat, lon: r.lon };
   return { name: 'Barcelona', lat: 41.3888, lon: 2.1590 };
+}
+
+function posicio() {
+  return new Promise((ok, ko) => {
+    if (!navigator.geolocation) return ko();
+    navigator.geolocation.getCurrentPosition(
+      p => ok({ lat: arrodoneix(p.coords.latitude), lon: arrodoneix(p.coords.longitude) }),
+      ko, { timeout: 10000, maximumAge: 10 * 60 * 1000 });
+  });
+}
+
+async function nomDelLloc({ lat, lon }) {
+  // El mateix que fa El Temps: Nominatim (OpenStreetMap) a través del proxy mecai
+  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=10&accept-language=ca`;
+  const r = await fetch(PROXY(url), { signal: AbortSignal.timeout(8000) });
+  if (!r.ok) throw new Error('nom');
+  const j = await r.json(), a = j.address || {};
+  return a.city || a.town || a.village || a.municipality || j.name;
+}
+
+async function llocActual() {
+  try {
+    const p = await posicio();
+    const anterior = llegeix(LLOC_GPS);
+    // Si no t'has mogut més d'un parell de km, es reaprofita el nom i no es torna a buscar
+    if (anterior && km(anterior, p) < 2) return { ...anterior, lat: p.lat, lon: p.lon };
+    let name = 'Aquí';
+    try { name = await nomDelLloc(p) || name; } catch {}
+    const lloc = { name, lat: p.lat, lon: p.lon, gps: true };
+    if (name !== 'Aquí') desa(LLOC_GPS, lloc);
+    return lloc;
+  } catch {
+    return llocDeReserva();   // sense permís o sense GPS
+  }
 }
 
 function pintaTemps({ lloc, d }) {
@@ -222,7 +260,7 @@ function pintaTemps({ lloc, d }) {
   const pluja = dia.precipitation_probability_max?.[0];
   if (pluja >= 20) mm += ` · 💧${pluja}%`;
   document.getElementById('t-minmax').textContent = mm;
-  document.getElementById('t-lloc').textContent = '📍 ' + lloc.name;
+  document.getElementById('t-lloc').textContent = (lloc.gps ? '📍 ' : '') + lloc.name;
   const a = document.getElementById('temps');
   a.href = 'https://oscarbellosido.github.io/ElTemps/?' +
     new URLSearchParams({ lat: lloc.lat, lon: lloc.lon, name: lloc.name });
@@ -231,11 +269,10 @@ function pintaTemps({ lloc, d }) {
 }
 
 async function carregaTemps() {
-  const lloc = llocTemps();
-  try {
-    const desat = JSON.parse(localStorage.getItem(CACHE_TEMPS) || 'null');
-    if (desat && desat.lloc.lat === lloc.lat && desat.lloc.lon === lloc.lon) pintaTemps(desat);
-  } catch {}
+  // Mentre es busca la ubicació, es mostra el darrer temps desat perquè no surti buit
+  const desat = llegeix(CACHE_TEMPS);
+  if (desat && document.getElementById('temps').hidden) pintaTemps(desat);
+  const lloc = await llocActual();
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lloc.lat}&longitude=${lloc.lon}`
       + `&current=temperature_2m,weather_code,is_day`
@@ -245,7 +282,7 @@ async function carregaTemps() {
     if (!r.ok) throw new Error('temps');
     const dades = { lloc, d: await r.json() };
     pintaTemps(dades);
-    try { localStorage.setItem(CACHE_TEMPS, JSON.stringify(dades)); } catch {}
+    desa(CACHE_TEMPS, dades);
   } catch {} // sense connexió: es queda el que hi havia desat (o res)
 }
 carregaTemps();
