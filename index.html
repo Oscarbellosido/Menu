@@ -103,6 +103,12 @@
     font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line);
     border-radius: 999px; padding: 8px 16px; cursor: pointer;
   }
+  .passos {
+    max-width: 420px; margin: 12px auto 0; padding: 12px 14px; text-align: left;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    color: var(--text); font-size: 14px; line-height: 1.5;
+  }
+  .passos b { font-weight: 620; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -126,6 +132,7 @@
 
   <footer>
     <button id="instal" hidden>Instal·la el menú al mòbil</button>
+    <p class="passos" id="passos" hidden></p>
   </footer>
 </main>
 
@@ -295,9 +302,30 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
 }
 let peticio;
 const boto = document.getElementById('instal');
+const passos = document.getElementById('passos');
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); peticio = e; boto.hidden = false; });
-boto.addEventListener('click', async () => { boto.hidden = true; peticio.prompt(); peticio = null; });
 addEventListener('appinstalled', () => { boto.hidden = true; });
+
+// Apple no deixa que la pàgina obri la instal·lació (no hi ha beforeinstallprompt):
+// a l'iPhone/iPad i al Safari del Mac el botó explica com fer-ho des del menú del navegador.
+const ua = navigator.userAgent;
+const jaInstallada = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+const esIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+const esSafariMac = !esIOS && /Macintosh/.test(ua) && /Safari\//.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|Firefox/.test(ua);
+if (!jaInstallada && (esIOS || esSafariMac)) {
+  boto.textContent = esIOS ? 'Instal·la el menú a l\'iPhone' : 'Instal·la el menú al Mac';
+  passos.innerHTML = esIOS
+    ? 'Toca el botó <b>Compartir</b> (el quadrat amb la fletxa cap amunt, a la barra del Safari) '
+      + 'i tria <b>Afegeix a la pantalla d\'inici</b>. Després toca <b>Afegeix</b>.'
+    : 'Al menú <b>Arxiu</b> del Safari, tria <b>Afegeix al Dock…</b> i després <b>Afegeix</b>. '
+      + '(Cal macOS Sonoma o posterior.)';
+  boto.hidden = false;
+}
+
+boto.addEventListener('click', () => {
+  if (peticio) { boto.hidden = true; peticio.prompt(); peticio = null; }
+  else passos.hidden = !passos.hidden;
+});
 </script>
 </body>
 </html>
