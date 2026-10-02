@@ -59,44 +59,80 @@
   .data { font-size: 16px; color: var(--muted); margin-top: 6px; }
   .data::first-letter { text-transform: uppercase; }
 
+  /* Titulars del dia (de l'app Notícies) */
+  .titulars {
+    display: block; margin: 0 0 16px; padding: 14px 16px;
+    background: color-mix(in srgb, #3b82f6 9%, transparent);
+    border: 1px solid color-mix(in srgb, #3b82f6 28%, transparent);
+    border-radius: 20px; color: inherit; text-decoration: none;
+    transition: background .15s;
+  }
+  .titulars:hover { background: color-mix(in srgb, #3b82f6 14%, transparent); }
+  .titulars-cap {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    font-size: 12px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: #7fb0ff;
+  }
+  .titulars-mes { font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 13px; white-space: nowrap; }
+  .titulars ol { list-style: none; margin-top: 8px; }
+  .titulars li { padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.4; color: #c9d4e5; }
+  .titulars li:first-child { border-top: 0; padding-top: 2px; font-size: 17px; font-weight: 600; line-height: 1.3; color: var(--text); }
+  .titulars .cat { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); margin-bottom: 1px; }
+
   .apps {
     list-style: none;
     display: grid; gap: 12px;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+    align-items: start;   /* obrir l'explicació d'una app no estira la del costat */
   }
-  .app { display: flex; }
-  .app a {
-    flex: 1;
-    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0 16px;
-    padding: 16px; min-height: 92px;
+  .app {
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 20px;
-    color: inherit; text-decoration: none;
     position: relative; overflow: hidden;
-    transition: background .15s, transform .1s, border-color .15s;
+    transition: background .15s, border-color .15s;
   }
-  .app a::before {
+  .app::before {
     content: ""; position: absolute; inset: 0 auto 0 0; width: 4px;
     background: var(--c); opacity: .9;
   }
-  .app a:hover { background: var(--card-hover); border-color: color-mix(in srgb, var(--c) 45%, transparent); }
-  .app a:active { transform: scale(.98); }
-  .app a:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+  .app:hover { background: var(--card-hover); border-color: color-mix(in srgb, var(--c) 45%, transparent); }
+  .app .obre {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 16px 10px;
+    color: inherit; text-decoration: none;
+    transition: transform .1s;
+  }
+  .app .obre:active { transform: scale(.98); }
+  .app .obre:focus-visible { outline: 2px solid var(--c); outline-offset: -2px; border-radius: 20px; }
   .app img {
-    width: 60px; height: 60px; border-radius: 15px; flex: none;
+    width: 56px; height: 56px; border-radius: 14px; flex: none;
     box-shadow: 0 4px 14px rgba(0,0,0,.35);
   }
   .app .txt { min-width: 0; flex: 1; }
   .app .nom { font-size: 19px; font-weight: 620; }
-  .app .desc { font-size: 14px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+  .app .desc { display: block; font-size: 14px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
   .app .fletxa { color: var(--muted); font-size: 22px; flex: none; transition: transform .15s, color .15s; }
+  .app .obre:hover .fletxa { color: var(--c); transform: translateX(3px); }
+
+  /* "Què fa aquesta app?": l'explicació plegada, amb un botó que es veu a totes les targetes */
+  .app .info {
+    display: flex; align-items: center; gap: 6px; width: 100%;
+    padding: 8px 16px 12px 88px;
+    font: inherit; font-size: 13px; text-align: left;
+    color: var(--c); background: none; border: 0; cursor: pointer;
+  }
+  .app .info .i {
+    width: 17px; height: 17px; border-radius: 50%; flex: none;
+    display: inline-grid; place-items: center;
+    border: 1.5px solid currentColor; font-size: 11px; font-weight: 700; font-style: normal;
+  }
+  .app .info .plec { transition: transform .2s; }
+  .app .info[aria-expanded="true"] .plec { transform: rotate(180deg); }
+  .app .info:hover span:not(.i):not(.plec) { text-decoration: underline; }
   .app .detall {
-    grid-column: 1 / -1;
-    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+    margin: 0 16px 14px; padding-top: 12px; border-top: 1px solid var(--line);
     font-size: 14px; line-height: 1.5; color: #b9c6da;
   }
-  .app a:hover .fletxa { color: var(--c); transform: translateX(3px); }
 
   footer { margin-top: 28px; text-align: center; font-size: 13px; color: var(--muted); }
   footer button {
@@ -131,6 +167,11 @@
       <div class="temps-lloc" id="t-lloc"></div>
     </a>
   </header>
+
+  <a class="titulars" id="titulars" href="https://oscarbellosido.github.io/Noticies/INDEX.html" hidden>
+    <div class="titulars-cap"><span>Avui al món</span><span class="titulars-mes">Totes les notícies ›</span></div>
+    <ol id="titulars-llista"></ol>
+  </a>
 
   <ul class="apps" id="apps"></ul>
 
@@ -170,16 +211,27 @@ const llista = document.getElementById('apps');
 for (const a of APPS) {
   const li = document.createElement('li');
   li.className = 'app';
+  li.style.setProperty('--c', a.color);
+  const id = 'detall-' + APPS.indexOf(a);
   li.innerHTML = `
-    <a href="${a.url}" style="--c:${a.color}">
-      <img src="${a.icona}" alt="" width="60" height="60">
-      <span class="txt"><span class="nom"></span><span class="desc" style="display:block"></span></span>
+    <a class="obre" href="${a.url}">
+      <img src="${a.icona}" alt="" width="56" height="56">
+      <span class="txt"><span class="nom"></span><span class="desc"></span></span>
       <span class="fletxa" aria-hidden="true">›</span>
-      <span class="detall"></span>
-    </a>`;
+    </a>
+    <button class="info" type="button" aria-expanded="false" aria-controls="${id}">
+      <i class="i" aria-hidden="true">i</i><span>Què fa aquesta app?</span><span class="plec" aria-hidden="true">▾</span>
+    </button>
+    <p class="detall" id="${id}" hidden></p>`;
   li.querySelector('.nom').textContent = a.nom;
   li.querySelector('.desc').textContent = a.desc;
   li.querySelector('.detall').textContent = a.detall;
+  const boto = li.querySelector('.info'), detall = li.querySelector('.detall');
+  boto.addEventListener('click', () => {
+    detall.hidden = !detall.hidden;
+    boto.setAttribute('aria-expanded', String(!detall.hidden));
+    boto.querySelector('span').textContent = detall.hidden ? 'Què fa aquesta app?' : 'Amaga l\'explicació';
+  });
   llista.append(li);
 }
 
@@ -300,6 +352,48 @@ async function carregaTemps() {
 carregaTemps();
 setInterval(carregaTemps, 15 * 60 * 1000);
 addEventListener('visibilitychange', () => { if (!document.hidden) carregaTemps(); });
+
+// Titulars del dia: les notícies més rellevants de les últimes 24 h de l'app Notícies (una per tema)
+const CACHE_TITULARS = 'menu_titulars';
+let darrersTitulars = 0;
+
+function pintaTitulars(llista) {
+  const ol = document.getElementById('titulars-llista');
+  ol.replaceChildren(...llista.map(t => {
+    const li = document.createElement('li');
+    const cat = document.createElement('span');
+    cat.className = 'cat';
+    cat.textContent = t.categoria;
+    li.append(cat, t.titol);
+    return li;
+  }));
+  document.getElementById('titulars').hidden = !llista.length;
+}
+
+async function carregaTitulars() {
+  if (Date.now() - darrersTitulars < 10 * 60 * 1000) return;   // com a molt cada 10 minuts
+  darrersTitulars = Date.now();
+  const desat = llegeix(CACHE_TITULARS);
+  if (desat && document.getElementById('titulars').hidden) pintaTitulars(desat);
+  try {
+    const r = await fetch('https://noticies.oscarbellosido.workers.dev/?action=news&limit=150',
+      { signal: AbortSignal.timeout(10000) });
+    if (!r.ok) throw new Error('noticies');
+    const { articles = [] } = await r.json();
+    const temes = new Set(), tria = [];
+    articles
+      .filter(a => !a.is_duplicate && a.title_ca && Date.now() - new Date(a.published_at) < 24 * 3600 * 1000)
+      .sort((a, b) => b.relevance - a.relevance || new Date(b.published_at) - new Date(a.published_at))
+      .forEach(a => {
+        const tema = a.topic_id || a.id;
+        if (tria.length < 3 && !temes.has(tema)) { temes.add(tema); tria.push({ titol: a.title_ca, categoria: a.category }); }
+      });
+    pintaTitulars(tria);
+    desa(CACHE_TITULARS, tria);
+  } catch {} // sense connexió: es queden els darrers desats
+}
+carregaTitulars();
+addEventListener('visibilitychange', () => { if (!document.hidden) carregaTitulars(); });
 
 // PWA: funciona sense connexió i es pot instal·lar
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
