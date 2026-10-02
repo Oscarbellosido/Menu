@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Les meves apps</title>
+<meta name="description" content="Llançador de les aplicacions: Notícies, El Temps, Jocs, Economia i Vídeos.">
+<meta name="theme-color" content="#0c1626">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root {
+    --bg: #0c1626;
+    --bg2: #13213a;
+    --card: rgba(255,255,255,.05);
+    --card-hover: rgba(255,255,255,.09);
+    --line: rgba(255,255,255,.09);
+    --text: #e8eef8;
+    --muted: #8fa1bd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    background: radial-gradient(120% 70% at 50% 0%, var(--bg2), var(--bg) 70%) fixed, var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    padding: max(28px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+  }
+  main { max-width: 760px; margin: 0 auto; }
+
+  header { margin: 8px 4px 28px; }
+  .salutacio { font-size: 15px; color: var(--muted); }
+  .hora {
+    font-size: clamp(44px, 12vw, 64px); font-weight: 650; letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums; line-height: 1.05; margin-top: 4px;
+  }
+  .data { font-size: 16px; color: var(--muted); margin-top: 6px; }
+  .data::first-letter { text-transform: uppercase; }
+
+  .apps {
+    list-style: none;
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+  }
+  .app a {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px; min-height: 92px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    color: inherit; text-decoration: none;
+    position: relative; overflow: hidden;
+    transition: background .15s, transform .1s, border-color .15s;
+  }
+  .app a::before {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 4px;
+    background: var(--c); opacity: .9;
+  }
+  .app a:hover { background: var(--card-hover); border-color: color-mix(in srgb, var(--c) 45%, transparent); }
+  .app a:active { transform: scale(.98); }
+  .app a:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+  .app img {
+    width: 60px; height: 60px; border-radius: 15px; flex: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,.35);
+  }
+  .app .txt { min-width: 0; flex: 1; }
+  .app .nom { font-size: 19px; font-weight: 620; }
+  .app .desc { font-size: 14px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+  .app .fletxa { color: var(--muted); font-size: 22px; flex: none; transition: transform .15s, color .15s; }
+  .app a:hover .fletxa { color: var(--c); transform: translateX(3px); }
+
+  footer { margin-top: 28px; text-align: center; font-size: 13px; color: var(--muted); }
+  footer button {
+    font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line);
+    border-radius: 999px; padding: 8px 16px; cursor: pointer;
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="salutacio" id="salutacio">Hola</div>
+    <div class="hora" id="hora">--:--</div>
+    <div class="data" id="data"></div>
+  </header>
+
+  <ul class="apps" id="apps"></ul>
+
+  <footer>
+    <button id="instal" hidden>Instal·la el menú al mòbil</button>
+  </footer>
+</main>
+
+<script>
+// Per afegir una app: posa'n la icona (192 px) a icones/ i afegeix-la aquí.
+// L'ordre d'aquesta llista és l'ordre en què surten a la pantalla.
+const APPS = [
+  { nom: 'Notícies',  desc: 'Notícies internacionals resumides en català',      url: 'https://oscarbellosido.github.io/Noticies/INDEX.html', icona: 'icones/noticies.png', color: '#3b82f6' },
+  { nom: 'El Temps',  desc: 'Predicció amb el consens de diversos models',       url: 'https://oscarbellosido.github.io/ElTemps/',            icona: 'icones/temps.png',    color: '#38bdf8' },
+  { nom: 'Jocs',      desc: 'Disset clàssics dels salons recreatius',            url: 'https://oscarbellosido.github.io/Jocs/',               icona: 'icones/jocs.png',     color: '#f59e0b' },
+  { nom: 'Economia',  desc: 'L\'economia mundial explicada fàcil',               url: 'https://oscarbellosido.github.io/Economia/',           icona: 'icones/economia.png', color: '#3987e5' },
+  { nom: 'Vídeos',    desc: 'Resum diari de Rallo, Pablo Gil, Marc Vidal i més', url: 'https://oscarbellosido.github.io/TransVideo/',         icona: 'icones/videos.png',   color: '#d95926' },
+];
+
+const llista = document.getElementById('apps');
+for (const a of APPS) {
+  const li = document.createElement('li');
+  li.className = 'app';
+  li.innerHTML = `
+    <a href="${a.url}" style="--c:${a.color}">
+      <img src="${a.icona}" alt="" width="60" height="60">
+      <span class="txt"><span class="nom"></span><span class="desc" style="display:block"></span></span>
+      <span class="fletxa" aria-hidden="true">›</span>
+    </a>`;
+  li.querySelector('.nom').textContent = a.nom;
+  li.querySelector('.desc').textContent = a.desc;
+  llista.append(li);
+}
+
+// Rellotge i salutació
+function rellotge() {
+  const ara = new Date();
+  const h = ara.getHours();
+  document.getElementById('salutacio').textContent =
+    h < 6 ? 'Bona nit' : h < 14 ? 'Bon dia' : h < 21 ? 'Bona tarda' : 'Bona nit';
+  document.getElementById('hora').textContent =
+    ara.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('data').textContent =
+    ara.toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+rellotge();
+setInterval(rellotge, 1000);
+
+// PWA: funciona sense connexió i es pot instal·lar
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js');
+}
+let peticio;
+const boto = document.getElementById('instal');
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); peticio = e; boto.hidden = false; });
+boto.addEventListener('click', async () => { boto.hidden = true; peticio.prompt(); peticio = null; });
+addEventListener('appinstalled', () => { boto.hidden = true; });
+</script>
+</body>
+</html>
