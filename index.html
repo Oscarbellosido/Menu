@@ -180,6 +180,31 @@
     font-size: 14px; line-height: 1.5; color: var(--text2);
   }
 
+  /* Avís d'app nova: surt fins que es tanca o s'obre l'app; l'etiqueta «Nova» dura 30 dies */
+  .novetat {
+    display: flex; align-items: center; gap: 12px; margin: 0 0 16px; padding: 12px 8px 12px 14px;
+    background: color-mix(in srgb, var(--c) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+    border-radius: 20px;
+  }
+  .novetat a { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; color: inherit; text-decoration: none; }
+  .novetat img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
+  .novetat .cap {
+    display: block; font-size: 12px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase;
+    color: color-mix(in srgb, var(--c) var(--to-c), #000);
+  }
+  .novetat .que { display: block; font-size: 15px; margin-top: 2px; line-height: 1.35; }
+  .novetat .tanca {
+    flex: none; width: 36px; height: 36px; border-radius: 50%; border: 0; cursor: pointer;
+    background: none; color: var(--muted); font-size: 22px; line-height: 1;
+  }
+  .novetat .tanca:hover { background: var(--card); color: var(--text); }
+  .app .etiqueta {
+    display: inline-block; vertical-align: 3px; margin-left: 8px; padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    background: var(--c); color: #fff;
+  }
+
   footer { margin-top: 28px; text-align: center; font-size: 13px; color: var(--muted); }
   footer button {
     font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line);
@@ -220,6 +245,8 @@
     <ol id="titulars-llista"></ol>
   </a>
 
+  <div id="novetats"></div>
+
   <ul class="apps" id="apps"></ul>
 
   <footer>
@@ -236,6 +263,7 @@
 // Per afegir una app: posa'n la icona (192 px) a icones/ i afegeix-la aquí.
 // L'ordre d'aquesta llista és l'ordre en què surten a la pantalla.
 // desc: una frase curta; detall: què fa el programa, en dues o tres frases.
+// nova: el dia que s'afegeix (AAAA-MM-DD); surt l'avís «Nova aplicació afegida» durant 30 dies.
 const APPS = [
   { nom: 'Notícies', url: 'https://oscarbellosido.github.io/Noticies/INDEX.html', icona: 'icones/noticies.png', color: '#3b82f6',
     desc: 'Notícies internacionals resumides en català',
@@ -246,7 +274,7 @@ const APPS = [
     desc: 'Predicció amb el consens de diversos models',
     detall: 'Compara set models meteorològics (europeu, alemany, francès, americà…) i en treu una predicció comuna amb un indicador de fiabilitat. '
           + "Té la previsió per hores i per a set dies, el radar de pluja, la qualitat de l'aire, els avisos oficials i el clima de cada població des del 1940." },
-  { nom: 'Activitats', url: 'https://oscarbellosido.github.io/Activitats/', icona: 'icones/activitats.png', color: '#1f4fd8',
+  { nom: 'Activitats', url: 'https://oscarbellosido.github.io/Activitats/', icona: 'icones/activitats.png', color: '#1f4fd8', nova: '2026-10-16',
     desc: 'Concerts, teatre, festes i fires de tot Catalunya',
     detall: "Cada dia a les 6 del matí recull l'agenda de la Generalitat, la Diputació de Barcelona, diversos ajuntaments i la Guia Barcelona. "
           + 'Les pots filtrar per gratuïtes o preu, província, comarca, tipus i dia, buscar-les pel nom i veure-les al mapa. '
@@ -287,7 +315,45 @@ for (const a of APPS) {
     boto.setAttribute('aria-expanded', String(!detall.hidden));
     boto.querySelector('span').textContent = detall.hidden ? 'Què fa aquesta app?' : 'Amaga l\'explicació';
   });
+  if (esNova(a)) {
+    const et = document.createElement('span');
+    et.className = 'etiqueta';
+    et.textContent = 'Nova';
+    li.querySelector('.nom').after(et);
+  }
+  li.querySelector('.obre').addEventListener('click', () => marcaVista(a));
   llista.append(li);
+}
+
+// Avís «Nova aplicació afegida»: un per cada app nova que aquest mòbil encara no ha vist
+function novetatsVistes() {
+  try { return JSON.parse(localStorage.getItem('menu_novetats_vistes')) || []; } catch { return []; }
+}
+function marcaVista(a) {
+  const vistes = novetatsVistes();
+  if (!vistes.includes(a.nom)) vistes.push(a.nom);
+  try { localStorage.setItem('menu_novetats_vistes', JSON.stringify(vistes)); } catch {}
+}
+function esNova(a) {
+  return !!a.nova && Date.now() - new Date(a.nova + 'T00:00') < 30 * 864e5;
+}
+for (const a of APPS.filter(esNova)) {
+  if (novetatsVistes().includes(a.nom)) continue;
+  const av = document.createElement('div');
+  av.className = 'novetat';
+  av.setAttribute('role', 'status');
+  av.style.setProperty('--c', a.color);
+  av.innerHTML = `
+    <a href="${a.url}">
+      <img src="${a.icona}" alt="" width="40" height="40">
+      <span><span class="cap">✨ Nova aplicació afegida</span><span class="que"><b></b> — </span></span>
+    </a>
+    <button class="tanca" type="button" aria-label="Tanca l'avís">×</button>`;
+  av.querySelector('b').textContent = a.nom;
+  av.querySelector('.que').append(a.desc);
+  av.querySelector('a').addEventListener('click', () => marcaVista(a));
+  av.querySelector('.tanca').addEventListener('click', () => { marcaVista(a); av.remove(); });
+  document.getElementById('novetats').append(av);
 }
 
 // Tema clar / fosc: automàtic (el del mòbil) → clar → fosc → automàtic…

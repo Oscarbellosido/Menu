@@ -5,7 +5,7 @@ Una sola pàgina estàtica (`index.html`), sense build ni dependències, instal�
 
 ## Afegir una app
 1. Copia la icona de 192 px de l'app a `icones/` (p. ex. `icones/nova.png`).
-2. Afegeix-la a la llista `APPS` del principi del `<script>` d'`index.html` (nom, descripció, URL, icona, color).
+2. Afegeix-la a la llista `APPS` del principi del `<script>` d'`index.html` (nom, descripció, URL, icona, color i `nova` amb la data d'avui, perquè surti l'avís «Nova aplicació afegida» durant 30 dies).
 3. Afegeix la icona a `SHELL` de `sw.js` i puja la versió de `CACHE`.
 
 ## Fitxers
