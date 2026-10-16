@@ -1,7 +1,7 @@
 {
   "name": "Les meves apps",
   "short_name": "Apps",
-  "description": "Llançador de les aplicacions: Notícies, El Temps, Jocs i Economia",
+  "description": "Llançador de les aplicacions: Notícies, El Temps, Activitats, Jocs i Economia",
   "lang": "ca",
   "start_url": "./",
   "scope": "./",
@@ -17,6 +17,7 @@
   "shortcuts": [
     { "name": "Notícies", "url": "https://oscarbellosido.github.io/Noticies/INDEX.html", "icons": [{ "src": "icones/noticies.png", "sizes": "192x192" }] },
     { "name": "El Temps", "url": "https://oscarbellosido.github.io/ElTemps/", "icons": [{ "src": "icones/temps.png", "sizes": "192x192" }] },
+    { "name": "Activitats", "url": "https://oscarbellosido.github.io/Activitats/", "icons": [{ "src": "icones/activitats.png", "sizes": "192x192" }] },
     { "name": "Jocs", "url": "https://oscarbellosido.github.io/Jocs/", "icons": [{ "src": "icones/jocs.png", "sizes": "192x192" }] },
     { "name": "Economia", "url": "https://oscarbellosido.github.io/Economia/", "icons": [{ "src": "icones/economia.png", "sizes": "192x192" }] }
   ]
